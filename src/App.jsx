@@ -3,20 +3,21 @@ import "./App.css";
 
 function App() {
   const [ip, setIp] = useState("");
-  const [location, setLocation] = useState({});
+  const [location, setLocation] = useState(null); // searched location
+  const [initialLocation, setInitialLocation] = useState(null); // user's current IP info
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const getData = async () => {
+    const getUserLocation = async () => {
       try {
         const res = await fetch("https://ipwho.is/");
         const data = await res.json();
-        setLocation(data);
+        setInitialLocation(data);
       } catch (error) {
         console.error(error);
       }
     };
-    getData();
+    getUserLocation();
   }, []);
 
   const handleClick = async () => {
@@ -39,9 +40,31 @@ function App() {
     }
   };
 
+  const renderInfo = (loc, title) => (
+    <div className="info-card">
+      <h2>{title}</h2>
+      <div className="info-grid">
+        <p><strong>IP:</strong> {loc.ip}</p>
+        <p><strong>Continent:</strong> {loc.continent}</p>
+        <p><strong>Country:</strong> {loc.country} ({loc.country_code})</p>
+        <p><strong>Region:</strong> {loc.region} ({loc.region_code})</p>
+        <p><strong>City:</strong> {loc.city}</p>
+        <p><strong>Postal Code:</strong> {loc.postal}</p>
+        <p><strong>Latitude:</strong> {loc.latitude}</p>
+        <p><strong>Longitude:</strong> {loc.longitude}</p>
+        <p><strong>Timezone:</strong> {loc.timezone?.id} (UTC {loc.timezone?.utc})</p>
+        <p><strong>ISP:</strong> {loc.connection?.isp}</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="app">
       <h1>🌍 IP Location Finder</h1>
+      <p className="note">The data below shows your current IP location. Use the search bar to find details for any other IP.</p>
+
+      {initialLocation && renderInfo(initialLocation, "Your Current Location")}
+
       <div className="search-box">
         <input
           type="text"
@@ -53,26 +76,7 @@ function App() {
       </div>
 
       {error && <p className="error">{error}</p>}
-
-      {location && location.success && (
-        <div className="info-card">
-          <h2>Location Information</h2>
-          <div className="info-grid">
-            <p><strong>IP:</strong> {location.ip}</p>
-            <p><strong>Continent:</strong> {location.continent}</p>
-            <p><strong>Country:</strong> {location.country} ({location.country_code})</p>
-            <p><strong>Region:</strong> {location.region} ({location.region_code})</p>
-            <p><strong>City:</strong> {location.city}</p>
-            <p><strong>Postal Code:</strong> {location.postal}</p>
-            <p><strong>Latitude:</strong> {location.latitude}</p>
-            <p><strong>Longitude:</strong> {location.longitude}</p>
-            <p><strong>Timezone:</strong> {location.timezone?.id} (UTC {location.timezone?.utc})</p>
-            <p><strong>ISP:</strong> {location.connection?.isp}</p>
-            <p><strong>Organization:</strong> {location.connection?.organization}</p>
-            <p><strong>Currency:</strong> {location.currency?.code} ({location.currency?.symbol})</p>
-          </div>
-        </div>
-      )}
+      {location && renderInfo(location, "Searched IP Location")}
     </div>
   );
 }
